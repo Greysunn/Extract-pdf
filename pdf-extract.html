@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Extracteur de texte PDF</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    input {
+      margin: 20px 0;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #00c9a7;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background: #00a98f;
+    }
+
+    textarea {
+      width: 90%;
+      height: 300px;
+      margin-top: 20px;
+      border-radius: 10px;
+      padding: 10px;
+      border: none;
+      resize: none;
+    }
+
+    .container {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>📄 Extracteur de texte PDF</h1>
+
+    <input type="file" id="fileInput" accept="application/pdf">
+    <br>
+    <button onclick="extractText()">Extraire le texte</button>
+
+    <textarea id="output" placeholder="Le texte extrait apparaîtra ici..."></textarea>
+  </div>
+
+  <script>
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+    async function extractText() {
+      const fileInput = document.getElementById('fileInput');
+      const output = document.getElementById('output');
+
+      if (fileInput.files.length === 0) {
+        alert("Veuillez sélectionner un PDF.");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+
+      reader.onload = async function() {
+        const typedarray = new Uint8Array(this.result);
+        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+
+        let fullText = '';
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+
+          const strings = content.items.map(item => item.str);
+          fullText += strings.join(' ') + '\n\n';
+        }
+
+        output.value = fullText;
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+  </script>
+
+</body>
+</html>
